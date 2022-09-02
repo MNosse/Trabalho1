@@ -10,9 +10,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class Server {
-    private static final Evento evento = new Evento("VILA GAMING", 20.00, null);
+    private static final List<Evento> eventos = new ArrayList<>();
     
     public static void main(String args[]) {
         System.out.println("Aguardando conexão...");
@@ -28,84 +33,55 @@ public class Server {
             String inputLine, outputLine = null;
             
             // Initiate conversation with client
-            outputLine = "ESCOLHA UM TIPO DE AÇÃO ABAIXO: INSERIR DADOS - 1 DELETAR DADOS - 2 LISTAR DADOS - 3 ATUALIZAR DADOS - 4 ";
+            outputLine = "ESCOLHA UM TIPO DE AÇÃO ABAIXO: INSERIR DADOS de participante - 1 DELETAR DADOS - 2 LISTAR DADOS - 3 ATUALIZAR DADOS - 4 ";
             out.println(outputLine);
             
             while ((inputLine = in.readLine()) != null) {
                 String texto = "";
                 String[] textoSplitado = inputLine.split(";");
                 switch (textoSplitado[0]) {
-                    case "INSERT": {
-                        int idade = Integer.parseInt(textoSplitado[4]);
-                        Pessoa pessoa = new Participante(textoSplitado[1], textoSplitado[2], textoSplitado[3], idade);
-                        evento.adicionarPessoa(pessoa);
+                    case "CRIAREVENTO":
+                        SimpleDateFormat formatter1=new SimpleDateFormat("dd/MM/yyyy");
+                        Date data = formatter1.parse(textoSplitado[3]);
+                        eventos.add(new Evento(textoSplitado[1], Double.parseDouble(textoSplitado[2]), data));
                         break;
-                    }
-                    case "DELETE": {
-                        for(Pessoa p : evento.getPessoas()) {
-                            if(p.getCpf().equals(textoSplitado[1])){
-                                evento.getPessoas().remove(p);
-                            }
+                    case "RECUPERAREVENTO":
+                        for(Evento e : eventos){
+                         texto += e.toString() + "\n";
                         }
                         break;
-                    }
-                    case "LIST": {
-                        texto = evento.getPessoas().toString();
+                    case "ATUALIZAREVENTO":
                         break;
-                    }
-                    case "UPDATE": {
-                        for(Pessoa p : evento.getPessoas()) {
-                            if(p.getCpf().equals(textoSplitado[2])) {
-                                p.setNome(textoSplitado[3]);
-                                p.setEndereco(textoSplitado[4]);
-                                texto = "Pessoa atualizada com sucesso";
-                            }else{
-                                texto = "Pessoa não encontrada";
-                            }
-                        }
+                    case "EXCLUIREVENTO":
                         break;
-                    }
-                    case "GET": {
-                        for(Pessoa p : evento.getPessoas()){
-                            if(p.getCpf().equals(textoSplitado[1])){
-                                texto = p.toString();
-                            }
-                        }
-                    }
+                    case "LISTARPARTICIPANTES":
+                        break;
+                    case "INSERIRPARTICIPANTE":
+                        break;
+                    case "ATUALIZARPARTICIPANTE":
+                        break;
+                    case "INSERIRVENDEDOR":
+                        break;
+                    case "ATUALIZARVENDEDOR":
+                        break;
+                    case "RECUPERARPESSOA":
+                        break;
+                    case "EXCLUIRPESSOA":
+                        break;
                     default:
                         texto = "Escolhe certo";
                         break;
                 }
                 outputLine = texto;
                 out.println(outputLine);
-                outputLine = "ESCOLHA UM TIPO DE AÇÃO ABAIXO: INSERIR DADOS - 1 DELETAR DADOS - 2 LISTAR DADOS - 3 ATUALIZAR DADOS - 4 ";
                 if (outputLine.equals("Bye.")) {
                     break;
                 }else{
                     out.println(outputLine);
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Exception caught when trying to listen on port "
-                    + 80 + " or listening for a connection");
-            System.out.println(e.getMessage());
-        }
-        
-        try (
-                ServerSocket serverSocket =  new ServerSocket(80);
-                Socket cliente = serverSocket.accept();
-                PrintWriter out =
-                        new PrintWriter(cliente.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(cliente.getInputStream()));
-        ) {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                out.println(inputLine);
-            }
-        } catch (IOException e) {
-            System.out.println("Exception caught when trying to listen on port "
-                    + 80 + " or listening for a connection");
+        } catch (Exception e) {
+            System.out.println("Algo deu Errado");
             System.out.println(e.getMessage());
         }
     }
