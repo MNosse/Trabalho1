@@ -18,6 +18,6 @@ public class Vendedor extends Pessoa{
     
     @Override
     public String toString() {
-        return super.toString() + ramoVenda;
+        return super.toString() + ";" + ramoVenda;
     }
 }

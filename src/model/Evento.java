@@ -97,9 +97,9 @@ public class Evento {
             if(size < 10) {
                 sb.append("0");
             }
-            sb.append(size).append("\n");
+            sb.append(size);
             for(String key : pessoas.keySet()) {
-                sb.append(pessoas.get(key).toString()).append("\n");
+                sb.append("\n").append(pessoas.get(key).toString());
             }
         } else {
             sb.append("0");

@@ -15,10 +15,10 @@ import java.util.*;
 public class Server {
     public static Map<String, Evento> eventos = new HashMap<>();
     
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         BufferedReader mainReader = new BufferedReader(new InputStreamReader(System.in));
         int serverPort;
-        
+    
         System.out.println("Insira a porta deseja utilizar no server (ex.: 80)");
         while(true) {
             try {
@@ -29,28 +29,30 @@ public class Server {
             }
         }
         
-        System.out.println("Aguardando conexao...");
-        try(ServerSocket serverSocket = new ServerSocket(serverPort);
-            Socket clientSocket = serverSocket.accept()) {
-            InputStream in = clientSocket.getInputStream();
-            OutputStream out = clientSocket.getOutputStream();
-            serverSocket.setReuseAddress(true);
-            System.out.println("contectado com: " + serverSocket.getInetAddress().getHostAddress());
-            while(true) {
+        
+    
+        ServerSocket serverSocket = new ServerSocket(serverPort);
+        serverSocket.setReuseAddress(true);
+        while(true) {
+            System.out.println("Aguardando conexao...");
+            try(Socket clientSocket = serverSocket.accept()) {
+                System.out.println("contectado com: " + clientSocket.getInetAddress().getHostAddress());
+                InputStream in = clientSocket.getInputStream();
+                OutputStream out = clientSocket.getOutputStream();
                 byte[] bytesRecebidos = new byte[1024];
                 int qtdBytesLidos = in.read(bytesRecebidos);
                 String mensagemRecebida = new String(bytesRecebidos, 0, qtdBytesLidos);
-                String mensagemAEnviar = "";
+                String mensagemAEnviar;
                 String[] mensagemSplitada = mensagemRecebida.split(";");
                 switch(mensagemSplitada[0]) {
                     case "CRIAREVENTO":
-                        if (mensagemSplitada.length == 4) {
+                        if(mensagemSplitada.length == 4) {
                             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
                             try {
                                 mensagemAEnviar = criarEvento(mensagemSplitada[1], Double.parseDouble(mensagemSplitada[2]), formatter.parse(mensagemSplitada[3]));
-                            } catch (ParseException e) {
+                            } catch(ParseException e) {
                                 mensagemAEnviar = "Informe uma data valida";
-                            } catch (NumberFormatException e) {
+                            } catch(NumberFormatException e) {
                                 mensagemAEnviar = "Informe um preco valido";
                             }
                         } else {
@@ -58,20 +60,20 @@ public class Server {
                         }
                         break;
                     case "RECUPERAREVENTO":
-                        if (mensagemSplitada.length == 2) {
+                        if(mensagemSplitada.length == 2) {
                             mensagemAEnviar = recuperarEvento(mensagemSplitada[1]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "ATUALIZAREVENTO":
-                        if (mensagemSplitada.length == 4) {
+                        if(mensagemSplitada.length == 4) {
                             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
                             try {
                                 mensagemAEnviar = atualizarEvento(mensagemSplitada[1], Double.parseDouble(mensagemSplitada[2]), formatter.parse(mensagemSplitada[3]));
-                            } catch (ParseException e) {
+                            } catch(ParseException e) {
                                 mensagemAEnviar = "Informe uma data valida";
-                            } catch (NumberFormatException e) {
+                            } catch(NumberFormatException e) {
                                 mensagemAEnviar = "Informe um preco valido";
                             }
                         } else {
@@ -79,7 +81,7 @@ public class Server {
                         }
                         break;
                     case "EXCLUIREVENTO":
-                        if (mensagemSplitada.length == 2) {
+                        if(mensagemSplitada.length == 2) {
                             mensagemAEnviar = excluirEvento(mensagemSplitada[1]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
@@ -89,24 +91,24 @@ public class Server {
                         mensagemAEnviar = listarEventos();
                         break;
                     case "LISTARPESSOAS":
-                        if (mensagemSplitada.length == 2) {
+                        if(mensagemSplitada.length == 2) {
                             mensagemAEnviar = listarPessoas(mensagemSplitada[1]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "LISTARPARTICIPANTES":
-                        if (mensagemSplitada.length == 2) {
+                        if(mensagemSplitada.length == 2) {
                             mensagemAEnviar = listarParticipantes(mensagemSplitada[1]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "INSERIRPARTICIPANTE":
-                        if (mensagemSplitada.length == 6) {
+                        if(mensagemSplitada.length == 6) {
                             try {
                                 mensagemAEnviar = inserirParticipante(mensagemSplitada[1], mensagemSplitada[2], mensagemSplitada[3], mensagemSplitada[4], Integer.parseInt(mensagemSplitada[5]));
-                            } catch (NumberFormatException e) {
+                            } catch(NumberFormatException e) {
                                 mensagemAEnviar = "Informe uma idade valida";
                             }
                         } else {
@@ -114,10 +116,10 @@ public class Server {
                         }
                         break;
                     case "ATUALIZARPARTICIPANTE":
-                        if (mensagemSplitada.length == 6) {
+                        if(mensagemSplitada.length == 6) {
                             try {
                                 mensagemAEnviar = atualizarParticipante(mensagemSplitada[1], mensagemSplitada[2], mensagemSplitada[3], mensagemSplitada[4], Integer.parseInt(mensagemSplitada[5]));
-                            } catch (NumberFormatException e) {
+                            } catch(NumberFormatException e) {
                                 mensagemAEnviar = "Informe uma idade valida";
                             }
                         } else {
@@ -125,56 +127,53 @@ public class Server {
                         }
                         break;
                     case "LISTARVENDEDORES":
-                        if (mensagemSplitada.length == 2) {
+                        if(mensagemSplitada.length == 2) {
                             mensagemAEnviar = listarVendedores(mensagemSplitada[1]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "INSERIRVENDEDOR":
-                        if (mensagemSplitada.length == 6) {
+                        if(mensagemSplitada.length == 6) {
                             mensagemAEnviar = inserirVendedor(mensagemSplitada[1], mensagemSplitada[2], mensagemSplitada[3], mensagemSplitada[4], mensagemSplitada[5]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "ATUALIZARVENDEDOR":
-                        if (mensagemSplitada.length == 6) {
+                        if(mensagemSplitada.length == 6) {
                             mensagemAEnviar = atualizarVendedor(mensagemSplitada[1], mensagemSplitada[2], mensagemSplitada[3], mensagemSplitada[4], mensagemSplitada[5]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "RECUPERARPESSOA":
-                        if ((mensagemSplitada.length == 3)) {
+                        if((mensagemSplitada.length == 3)) {
                             mensagemAEnviar = recuperarPessoa(mensagemSplitada[1], mensagemSplitada[2]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
                         break;
                     case "EXCLUIRPESSOA":
-                        if ((mensagemSplitada.length == 3)) {
+                        if((mensagemSplitada.length == 3)) {
                             mensagemAEnviar = excluirPessoa(mensagemSplitada[1], mensagemSplitada[2]);
                         } else {
                             mensagemAEnviar = "Quantidade de parametros diferente do esperado";
                         }
-                        break;
-                    case "DESCONECTAR":
-                        serverSocket.close();
                         break;
                     default:
                         mensagemAEnviar = "Opcao invalida";
                         break;
                 }
                 out.write(mensagemAEnviar.getBytes());
+            } catch(Exception e) {
+                System.out.println("Algo deu Errado");
+                System.out.println(e.getMessage());
             }
-        } catch(Exception e) {
-            System.out.println("Algo deu Errado");
-            System.out.println(e.getMessage());
         }
     }
     
-    public static String criarEvento(String nome, double preco, Date dataRealizacao) {
+    private static String criarEvento(String nome, double preco, Date dataRealizacao) {
         Evento eventoCriado = new Evento(nome, preco, dataRealizacao);
         Evento eventoExistente = eventos.get(nome);
         if(eventoExistente == null) {
@@ -185,7 +184,7 @@ public class Server {
         }
     }
     
-    public static String recuperarEvento(String nome) {
+    private static String recuperarEvento(String nome) {
         Evento evento = eventos.get(nome);
         if(evento != null) {
             return evento.toString();
@@ -194,7 +193,7 @@ public class Server {
         }
     }
     
-    public static String atualizarEvento(String nome, double preco, Date dataRealizacao) {
+    private static String atualizarEvento(String nome, double preco, Date dataRealizacao) {
         Evento evento = eventos.get(nome);
         if(evento != null) {
             evento.setPreco(preco);
@@ -205,7 +204,7 @@ public class Server {
         }
     }
     
-    public static String excluirEvento(String nome) {
+    private static String excluirEvento(String nome) {
         if(eventos.get(nome) != null) {
             eventos.remove(nome);
             return "Evento excluido com sucesso";
@@ -214,16 +213,16 @@ public class Server {
         }
     }
     
-    public static String listarEventos() {
+    private static String listarEventos() {
         int size = eventos.size();
         if (size > 0) {
             String retorno = "";
             if (size < 10) {
                 retorno = "0";
             }
-            retorno += size+"\n";
+            retorno += size;
             for (String key : eventos.keySet()) {
-                retorno += eventos.get(key).toString()+"\n";
+                retorno += "\n"+eventos.get(key).toString();
             }
             return retorno;
         } else {
@@ -231,7 +230,7 @@ public class Server {
         }
     }
     
-    public static String listarPessoas(String nome) {
+    private static String listarPessoas(String nome) {
         Evento evento = eventos.get(nome);
         if(evento != null) {
             List<Pessoa> pessoas = evento.listaDePessoas();
@@ -241,9 +240,9 @@ public class Server {
                 if(size < 10) {
                     retorno = "0";
                 }
-                retorno += size + "\n";
+                retorno += size;
                 for(Pessoa pessoa : pessoas) {
-                    retorno += pessoa.toString() + "\n";
+                    retorno += "\n" + pessoa.toString();
                 }
                 return retorno;
             } else {
@@ -254,7 +253,7 @@ public class Server {
         }
     }
     
-    public static String listarParticipantes(String nome) {
+    private static String listarParticipantes(String nome) {
         Evento evento = eventos.get(nome);
         if(evento != null) {
             List<Pessoa> participantes = evento.listaDeParticipantes();
@@ -264,9 +263,9 @@ public class Server {
                 if(size < 10) {
                     retorno = "0";
                 }
-                retorno += size + "\n";
+                retorno += size;
                 for(Pessoa participante : participantes) {
-                    retorno += participante.toString() + "\n";
+                    retorno += "\n" + participante.toString();
                 }
                 return retorno;
             } else {
@@ -277,7 +276,7 @@ public class Server {
         }
     }
     
-    public static String inserirParticipante(String nomeEvento, String cpf, String nomeParticipante, String endereco, int idade) {
+    private static String inserirParticipante(String nomeEvento, String cpf, String nomeParticipante, String endereco, int idade) {
         Evento evento = eventos.get(nomeEvento);
         if(evento != null){
             if (evento.getPessoas().get(cpf) == null) {
@@ -291,7 +290,7 @@ public class Server {
         }
     }
     
-    public static String atualizarParticipante(String nomeEvento, String cpf, String nomeParticipante, String endereco, int idade) {
+    private static String atualizarParticipante(String nomeEvento, String cpf, String nomeParticipante, String endereco, int idade) {
         Evento evento = eventos.get(nomeEvento);
         if(evento != null){
             Map<String, Pessoa> pessoas = evento.getPessoas();
@@ -312,7 +311,7 @@ public class Server {
         }
     }
     
-    public static String listarVendedores(String nome) {
+    private static String listarVendedores(String nome) {
         Evento evento = eventos.get(nome);
         if(evento != null) {
             List<Pessoa> vendedores = evento.listaDeVendedores();
@@ -322,9 +321,9 @@ public class Server {
                 if(size < 10) {
                     retorno = "0";
                 }
-                retorno += size + "\n";
+                retorno += size;
                 for(Pessoa vendedor : vendedores) {
-                    retorno += vendedor.toString() + "\n";
+                    retorno += "\n" + vendedor.toString();
                 }
                 return retorno;
             } else {
@@ -335,7 +334,7 @@ public class Server {
         }
     }
     
-    public static String inserirVendedor(String nomeEvento, String cpf, String nomeParticipante, String endereco, String ramoVenda) {
+    private static String inserirVendedor(String nomeEvento, String cpf, String nomeParticipante, String endereco, String ramoVenda) {
         Evento evento = eventos.get(nomeEvento);
         if(evento != null){
             if (evento.getPessoas().get(cpf) == null) {
@@ -349,7 +348,7 @@ public class Server {
         }
     }
     
-    public static String atualizarVendedor(String nomeEvento, String cpf, String nomeVendedor, String endereco, String ramoVenda) {
+    private static String atualizarVendedor(String nomeEvento, String cpf, String nomeVendedor, String endereco, String ramoVenda) {
         Evento evento = eventos.get(nomeEvento);
         if(evento != null){
             Map<String, Pessoa> pessoas = evento.getPessoas();
@@ -384,7 +383,7 @@ public class Server {
         }
     }
     
-    public static String excluirPessoa(String nomeEvento, String cpf) {
+    private static String excluirPessoa(String nomeEvento, String cpf) {
         Evento evento = eventos.get(nomeEvento);
         if(evento != null) {
             Pessoa pessoa = evento.getPessoas().get(cpf);

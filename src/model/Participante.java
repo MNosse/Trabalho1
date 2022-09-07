@@ -18,6 +18,6 @@ public class Participante extends Pessoa{
     
     @Override
     public String toString() {
-        return super.toString() + idade;
+        return super.toString() + ";" + idade;
     }
 }
